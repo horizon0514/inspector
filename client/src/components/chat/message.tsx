@@ -2,7 +2,7 @@ import { memo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatTimestamp, sanitizeText, isImageFile } from "@/lib/chat-utils";
 import { ChatMessage } from "@/lib/chat-types";
-import { Copy, CopyIcon, RotateCcw } from "lucide-react";
+import { Check, Copy, CopyIcon, RotateCcw } from "lucide-react";
 import { Markdown } from "./markdown";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
@@ -11,6 +11,7 @@ import { ToolCallDisplay } from "./tool-call";
 import { getProviderLogoFromModel } from "./chat-helpers";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 import { MastraMCPServerDefinition, ModelDefinition } from "@/shared/types.js";
+import { useCopy } from "@/hooks/use-copy";
 
 // Reusable Image Attachment Component
 const ImageAttachment = ({
@@ -95,13 +96,10 @@ const PureMessage = ({
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [isHovered, setIsHovered] = useState(false);
   const themeMode = usePreferencesStore((s) => s.themeMode);
+  const { status, copyToClipboard } = useCopy(onCopy);
 
   const handleCopy = () => {
-    if (onCopy) {
-      onCopy(message.content);
-    } else {
-      navigator.clipboard.writeText(message.content);
-    }
+    copyToClipboard(message.content);
   };
 
   const handleEdit = () => {
@@ -246,7 +244,11 @@ const PureMessage = ({
                                 className="px-2 h-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                                 onClick={handleCopy}
                               >
-                                <Copy size={14} />
+                                {status === "success" ? (
+                                  <Check size={14} className="text-green-500" />
+                                ) : (
+                                  <CopyIcon size={14} />
+                                )}
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>Copy</TooltipContent>
@@ -340,7 +342,11 @@ const PureMessage = ({
                             className="px-2 h-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
                             onClick={handleCopy}
                           >
-                            <CopyIcon size={14} />
+                            {status === "success" ? (
+                              <Check size={14} className="text-green-500" />
+                            ) : (
+                              <Copy size={14} />
+                            )}
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Copy</TooltipContent>
